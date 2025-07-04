@@ -13,9 +13,10 @@ class User(BaseModel):
         self.is_admin = is_admin
         self.places = []
         self.reviews = []
-        self.password = None
         if password:
             self.hash_password(password)
+        else:
+            self.password = None
 
     @property
     def first_name(self):
