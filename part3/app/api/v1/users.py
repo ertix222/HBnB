@@ -43,7 +43,8 @@ class UserList(Resource):
 
     @api.response(200, 'List of users retrieved successfully')
     def get(self):
-        """Retrieve a list of users"""
+        """Retrieve a list of users
+        (no need to edit as the dict doesn't include password)"""
         users = facade.get_users()
         return [user.to_dict() for user in users], 200
 
@@ -53,7 +54,8 @@ class UserResource(Resource):
     @api.response(200, 'User details retrieved successfully')
     @api.response(404, 'User not found')
     def get(self, user_id):
-        """Get user details by ID"""
+        """Get user details by ID
+        (no need to edit as the dict doesn't include password)"""
         user = facade.get_user(user_id)
         if not user:
             return {'error': 'User not found'}, 404

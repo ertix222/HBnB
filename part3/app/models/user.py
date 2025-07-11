@@ -72,12 +72,11 @@ class User(BaseModel):
 
     @password.setter
     def password(self, value):
-        if not isinstance(value, str) or value is not None:
-            raise TypeError("Password need to be a string or None")
-        if value:
-            self.__password = self.hash_password(value)
-        else:
-            self.__password = None
+        if not isinstance(value, str) or not value:
+            raise TypeError("Password should be a string")
+        if value == "":
+            raise ValueError("Password should be a non empty string")
+        self.__password = value
 
     def hash_password(self, password):
         """Hashes the password before storing it."""
@@ -100,6 +99,12 @@ class User(BaseModel):
         self.reviews.remove(review)
 
     def to_dict(self):
+        """Dictionary of the user
+        (no need to include password, it's safer)
+
+        Returns:
+            dict: Dictionary of the user
+        """
         return {
             'id': self.id,
             'first_name': self.first_name,
