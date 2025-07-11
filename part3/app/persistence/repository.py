@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
-from app import db
-from app.models import User, Place, Review, Amenity
+
 
 class Repository(ABC):
     @abstractmethod
@@ -28,39 +27,6 @@ class Repository(ABC):
         pass
 
 
-class SQLAlchemyRepository(Repository):
-    def __init__(self, model):
-        self.model = model
-        self.db = db
-
-
-    def add(self, obj):
-        self.db.session.add(obj)
-        self.db.session.commit()
-
-    def get(self, obj_id):
-        return self.model.query.get(obj_id)
-
-    def get_all(self):
-        return self.model.query.all()
-
-    def update(self, obj_id, data):
-        obj = self.get(obj_id)
-        if obj:
-            for key, value in data.items():
-                setattr(obj, key, value)
-            self.db.session.commit()
-
-    def delete(self, obj_id):
-        obj = self.get(obj_id)
-        if obj:
-            self.db.session.delete(obj)
-            self.db.session.commit()
-
-    def get_by_attribute(self, attr_name, attr_value):
-        return self.model.query.filter(getattr(self.model, attr_name) == attr_value).first()
-
-
 class InMemoryRepository(Repository):
     def __init__(self):
         self._storage = {}
@@ -84,4 +50,5 @@ class InMemoryRepository(Repository):
             del self._storage[obj_id]
 
     def get_by_attribute(self, attr_name, attr_value):
-        return next((obj for obj in self._storage.values() if getattr(obj, attr_name) == attr_value), None)
+        return next((obj for obj in self._storage.values()
+                     if getattr(obj, attr_name) == attr_value), None)

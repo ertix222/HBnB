@@ -1,10 +1,13 @@
 from .basemodel import BaseModel
 import re
+from app import bcrypt
+
 
 class User(BaseModel):
     emails = set()
 
-    def __init__(self, first_name, last_name, email, password=None, is_admin=False):
+    def __init__(self, first_name, last_name, email,
+                 password=None, is_admin=False):
         super().__init__()
         self.first_name = first_name
         self.last_name = last_name
@@ -12,15 +15,12 @@ class User(BaseModel):
         self.is_admin = is_admin
         self.places = []
         self.reviews = []
-        if password:
-            self.hash_password(password)
-        else:
-            self.password = None
+        self.password = password
 
     @property
     def first_name(self):
         return self.__first_name
-    
+
     @first_name.setter
     def first_name(self, value):
         if not isinstance(value, str):
@@ -59,22 +59,25 @@ class User(BaseModel):
     @property
     def is_admin(self):
         return self.__is_admin
-    
+
     @is_admin.setter
     def is_admin(self, value):
         if not isinstance(value, bool):
             raise TypeError("Is Admin must be a boolean")
         self.__is_admin = value
-    
+
     @property
     def password(self):
         return self.__password
 
     @password.setter
     def password(self, value):
-        if not isinstance(value, str) and value is not None:
+        if not isinstance(value, str) or value is not None:
             raise TypeError("Password need to be a string or None")
-        self._password = value
+        if value:
+            self.__password = self.hash_password(value)
+        else:
+            self.__password = None
 
     def hash_password(self, password):
         """Hashes the password before storing it."""
