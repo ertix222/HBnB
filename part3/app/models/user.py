@@ -15,7 +15,10 @@ class User(BaseModel):
         self.is_admin = is_admin
         self.places = []
         self.reviews = []
-        self.password = password
+        if password:
+            self.hash_password(password)
+        else:
+            self.password = None
 
     @property
     def first_name(self):
@@ -84,7 +87,7 @@ class User(BaseModel):
 
     def verify_password(self, password):
         """Verifies if the provided password matches the hashed password."""
-        return bcrypt.check_password_hash(self.password, password)
+        return bcrypt.check_password_hash(self.__password, password)
 
     def add_place(self, place):
         """Add an amenity to the place."""
