@@ -19,7 +19,8 @@ user_model = api.model('User', {
 
 @api.route('/')
 class UserList(Resource):
-    @jwt_required
+    @jwt_required(optional=True)
+    @api.doc(security="Bearer Auth")
     @api.expect(user_model, validate=True)
     @api.response(201, 'User successfully created')
     @api.response(409, 'Email already registered')
@@ -27,18 +28,22 @@ class UserList(Resource):
     @api.response(400, 'Invalid input data')
     def post(self):
         """Register a new user"""
-        current_user = get_jwt_identity()
-        if not current_user["is_admin"]:
-            return {'error': 'Only admins can create users.'}, 403
-
         user_data = api.payload
 
-        # Simulate email uniqueness check
-        # (to be replaced by real validation with persistence)
-        existing_user = facade.get_user_by_email(user_data['email'])
-        if existing_user:
-            return {'error': 'Email already registered.'}, 409
+        current_user = get_jwt_identity()
+        if not facade.get_users() == []:
+            if not current_user or "is_admin" not in current_user:
+                return {'error': 'Invalid input data.'}, 400
+                        
+            if not current_user["is_admin"]:
+                return {'error': 'Only admins can create users.'}, 403
 
+            # Simulate email uniqueness check
+            # (to be replaced by real validation with persistence)
+            existing_user = facade.get_user_by_email(user_data['email'])
+            if existing_user:
+                
+                return {'error': 'Email already registered.'}, 409
         try:
             new_user = facade.create_user(user_data)
             return {

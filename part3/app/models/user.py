@@ -12,11 +12,6 @@ class User(BaseModel):
     email = db.Column(db.String(120), nullable=False, unique=True)
     password = db.Column(db.String(128), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
-    
-    def __init__(self):
-        super().__init__()
-        self.places = []
-        self.reviews = []
 
     @validates('email')
     def validate_email(self, key, value):

@@ -1,4 +1,4 @@
-from app.persistence.repository import InMemoryRepository
+from app.persistence.repository import SQLAlchemyRepository
 
 from app.services.model_repositories.user_repo import UserRepository
 
@@ -11,15 +11,16 @@ from app.models.review import Review
 class HBnBFacade:
     def __init__(self):
         self.user_repo = UserRepository()
-        self.amenity_repo = InMemoryRepository()
-        self.place_repo = InMemoryRepository()
-        self.review_repo = InMemoryRepository()
+        self.amenity_repo = SQLAlchemyRepository(Amenity)
+        self.place_repo = SQLAlchemyRepository(Place)
+        self.review_repo = SQLAlchemyRepository(Review)
 
     # USER
     def create_user(self, user_data):
-        password = user_data.pop("password")
+        if self.user_repo.number_of_users() == 0:
+            user_data["is_admin"] = True
         user = User(**user_data)
-        user.hash_password(password)
+        user.hash_password(user_data["password"])
         self.user_repo.add(user)
         return user
 

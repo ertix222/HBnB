@@ -9,3 +9,6 @@ class UserRepository(SQLAlchemyRepository):
 
     def get_user_by_email(self, email):
         return self.model.query.filter_by(email=email).first()
+
+    def number_of_users(self):
+        return self.model.query.count()
