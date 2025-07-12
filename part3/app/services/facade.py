@@ -46,11 +46,10 @@ class HBnBFacade:
         self.amenity_repo.update(amenity_id, amenity_data)
 
     # PLACE
-    def create_place(self, place_data):
-        user = self.user_repo.get_by_attribute('id', place_data['owner_id'])
+    def create_place(self, place_data, owner_id):
+        user = self.user_repo.get_by_attribute('id', owner_id)
         if not user:
             raise KeyError('Invalid input data')
-        del place_data['owner_id']
         place_data['owner'] = user
         amenities = place_data.pop('amenities', None)
         if amenities:

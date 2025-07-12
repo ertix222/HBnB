@@ -58,7 +58,7 @@ class PlaceList(Resource):
         if not user:
             return {'error': 'Invalid input data'}, 400
         try:
-            new_place = facade.create_place(place_data)
+            new_place = facade.create_place(place_data, owner)
             return new_place.to_dict(), 201
         except Exception as e:
             return {'error': str(e)}, 400
@@ -96,7 +96,7 @@ class PlaceResource(Resource):
 
         current_user = get_jwt_identity()
         if not current_user["id"] == place.owner.id:
-            return {'error': 'Only the owner of the place can modify its information'}, 403
+            return {'error': 'Unauthorized action.'}, 403
 
         try:
             facade.update_place(place_id, place_data)

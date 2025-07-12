@@ -71,19 +71,15 @@ class UserResource(Resource):
         user_data = api.payload
 
         if "email" in user_data or "password" in user_data:
-            return {
-                'error': 'Users cannot modify their email and password'
-                }, 403
+            return {'error': '"You cannot modify email or password.'}, 400
 
         user = facade.get_user(user_id)
         if not user:
             return {'error': 'User not found'}, 404
 
         current_user = get_jwt_identity()
-        if not current_user["id"] == user.id:
-            return {
-                'error': 'Users can only modify their own details'
-                }, 403
+        if not current_user["id"] == user_id:
+            return {'error': 'Unauthorized action.'}, 403
 
         try:
             facade.update_user(user_id, user_data)

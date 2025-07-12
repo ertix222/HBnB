@@ -35,17 +35,13 @@ class ReviewList(Resource):
 
         current_user = get_jwt_identity()
         if current_user["id"] == user.id:
-            return {
-                'error': 'Users can only review places they do not own'
-                }, 403
+            return {'error': 'You cannot review your own place.'}, 400
         if place.owner.id == user.id:
             return {'error': 'User cannot review their own place'}, 400
 
         for i in current_user["reviews"]:
             if facade.get_place(i.place.id) == place.id:
-                return {
-                    'error': 'Users can only create one review per place'
-                    }, 403
+                return {'error': 'You have already reviewed this place.'}, 400
 
         try:
             new_review = facade.create_review(review_data)
@@ -84,9 +80,7 @@ class ReviewResource(Resource):
 
         current_user = get_jwt_identity()
         if not current_user["id"] == review.user.id:
-            return {
-                'error': 'Users can only modify reviews they created'
-                }, 403
+            return {'error': 'Unauthorized action.'}, 403
 
         try:
             facade.update_review(review_id, review_data)
@@ -105,9 +99,7 @@ class ReviewResource(Resource):
         
         current_user = get_jwt_identity()
         if not current_user["id"] == review.user.id:
-            return {
-                'error': 'Users can only delete reviews they created'
-                }, 403
+            return {'error': 'Unauthorized action.'}, 403
 
         try:
             facade.delete_review(review_id)
