@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_restx import Api
+from config import DevelopmentConfig
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
 from flask import Flask
@@ -11,10 +12,11 @@ jwt = JWTManager()
 db = SQLAlchemy()
 
 
-def create_app(config_class="config.DevelopmentConfig"):
+def create_app(config_class=DevelopmentConfig):
     app = Flask(__name__)
     app.config.from_object(config_class)
-    api = Api(app, version='1.0',
+    api = Api(app,
+              version='1.0',
               title='HBnB API',
               description='HBnB Application API')
 
