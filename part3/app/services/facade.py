@@ -75,11 +75,10 @@ class HBnBFacade:
         self.place_repo.update(place_id, place_data)
 
     # REVIEWS
-    def create_review(self, review_data):
-        user = self.user_repo.get(review_data['user_id'])
+    def create_review(self, review_data, user_id):
+        user = self.user_repo.get(user_id)
         if not user:
             raise KeyError('Invalid input data')
-        del review_data['user_id']
         review_data['user'] = user
 
         place = self.place_repo.get(review_data['place_id'])

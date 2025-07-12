@@ -10,8 +10,6 @@ review_model = api.model('Review', {
                           description='Text of the review'),
     'rating': fields.Integer(required=True,
                              description='Rating of the place (1-5)'),
-    'user_id': fields.String(required=True,
-                             description='ID of the user'),
     'place_id': fields.String(required=True,
                               description='ID of the place')
 })
@@ -29,22 +27,21 @@ class ReviewList(Resource):
         place = facade.get_place(review_data['place_id'])
         if not place:
             return {'error': 'Place not found'}, 400
-        user = facade.get_user(review_data['user_id'])
+
+        current_user = get_jwt_identity()
+        user = facade.get_user(current_user["id"])
         if not user:
             return {'error': 'User not found'}, 400
 
-        current_user = get_jwt_identity()
-        if current_user["id"] == user.id:
-            return {'error': 'You cannot review your own place.'}, 400
         if place.owner.id == user.id:
-            return {'error': 'User cannot review their own place'}, 400
+            return {'error': 'You cannot review your own place.'}, 400
 
-        for i in current_user["reviews"]:
-            if facade.get_place(i.place.id) == place.id:
+        for i in user.reviews:
+            if i.place.id == place.id:
                 return {'error': 'You have already reviewed this place.'}, 400
 
         try:
-            new_review = facade.create_review(review_data)
+            new_review = facade.create_review(review_data, user.id)
             return new_review.to_dict(), 201
         except Exception as e:
             return {'error': str(e)}, 400
