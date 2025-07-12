@@ -1,3 +1,4 @@
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restx import Namespace, Resource, fields
 from app.services import facade
 
@@ -39,11 +40,16 @@ place_model = api.model('Place', {
 
 @api.route('/')
 class PlaceList(Resource):
+    @jwt_required()
     @api.expect(place_model)
     @api.response(201, 'Place successfully created')
     @api.response(400, 'Invalid input data')
     def post(self):
         """Register a new place"""
+        current_user = get_jwt_identity()
+        if not current_user["is_admin"]:
+            return {'error': 'Only admins can register new places'}, 403
+
         place_data = api.payload
         owner = place_data.get('owner_id', None)
 
@@ -77,6 +83,7 @@ class PlaceResource(Resource):
             return {'error': 'Place not found'}, 404
         return place.to_dict_list(), 200
 
+    @jwt_required()
     @api.expect(place_model)
     @api.response(200, 'Place updated successfully')
     @api.response(404, 'Place not found')
@@ -85,8 +92,14 @@ class PlaceResource(Resource):
         """Update a place's information"""
         place_data = api.payload
         place = facade.get_place(place_id)
+
         if not place:
             return {'error': 'Place not found'}, 404
+
+        current_user = get_jwt_identity()
+        if not current_user["id"] == place.owner.id:
+            return {'error': 'Only the owner of the place can modify its information'}, 403
+
         try:
             facade.update_place(place_id, place_data)
             return {'message': 'Place updated successfully'}, 200

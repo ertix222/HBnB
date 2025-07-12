@@ -1,5 +1,6 @@
 from flask_restx import Namespace, Resource, fields
 from app.services import facade
+from flask_jwt_extended import get_jwt_identity, jwt_required
 
 
 api = Namespace('amenities', description='Amenity operations')
@@ -12,11 +13,16 @@ amenity_model = api.model('Amenity', {
 
 @api.route('/')
 class AmenityList(Resource):
+    @jwt_required()
     @api.expect(amenity_model)
     @api.response(201, 'Amenity successfully created')
     @api.response(400, 'Invalid input data')
     def post(self):
         """Register a new amenity"""
+        current_user = get_jwt_identity()
+        if not current_user["is_admin"]:
+            return {'error': 'Only admins can create amenities'}, 403
+
         amenity_data = api.payload
 
         existing_amenity = facade.amenity_repo.get_by_attribute(
@@ -51,9 +57,16 @@ class AmenityResource(Resource):
     @api.response(200, 'Amenity updated successfully')
     @api.response(404, 'Amenity not found')
     @api.response(400, 'Invalid input data')
+    @jwt_required()
     def put(self, amenity_id):
+        current_user = get_jwt_identity()
+        if not current_user["is_admin"]:
+            return {'error': 'Only admins can modify amenities'}, 403
+
         amenity_data = api.payload
+
         amenity = facade.get_amenity(amenity_id)
+
         if not amenity:
             return {'error': 'Amenity not found'}, 404
         try:

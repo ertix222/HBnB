@@ -1,3 +1,4 @@
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restx import Namespace, Resource, fields
 from app.services import facade
 
@@ -61,15 +62,29 @@ class UserResource(Resource):
             return {'error': 'User not found'}, 404
         return user.to_dict(), 200
 
+    @jwt_required()
     @api.expect(user_model)
     @api.response(200, 'User updated successfully')
     @api.response(404, 'User not found')
     @api.response(400, 'Invalid input data')
     def put(self, user_id):
         user_data = api.payload
+
+        if "email" in user_data or "password" in user_data:
+            return {
+                'error': 'Users cannot modify their email and password'
+                }, 403
+
         user = facade.get_user(user_id)
         if not user:
             return {'error': 'User not found'}, 404
+
+        current_user = get_jwt_identity()
+        if not current_user["id"] == user.id:
+            return {
+                'error': 'Users can only modify their own details'
+                }, 403
+
         try:
             facade.update_user(user_id, user_data)
             return user.to_dict(), 200
