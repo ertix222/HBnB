@@ -47,10 +47,12 @@ class PlaceList(Resource):
             return {'error': 'Only admins can register new places'}, 403
 
         place_data = api.payload
-        owner = place_data.get('owner_id', None)
+        owner = current_user["id"]
 
         if owner is None or len(owner) == 0:
             return {'error': 'Invalid input data.'}, 400
+        
+        place_data["owner"] = owner
 
         user = facade.user_repo.get_by_attribute('id', owner)
         if not user:
