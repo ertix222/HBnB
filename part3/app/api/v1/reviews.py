@@ -99,7 +99,7 @@ class ReviewResource(Resource):
 
         current_user = get_jwt_identity()
         if not current_user["id"] == review.user.id \
-           or not current_user["is_admin"]:
+           and not current_user["is_admin"]:
             return {'error': 'Unauthorized action.'}, 403
 
         try:

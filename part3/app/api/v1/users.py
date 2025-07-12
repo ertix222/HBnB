@@ -13,7 +13,7 @@ user_model = api.model('User', {
     'email': fields.String(required=True,
                            description='Email of the user'),
     'password': fields.String(required=True,
-                              description='Password of the user'),
+                              description='Password of the user')
 })
 
 
@@ -27,11 +27,11 @@ class UserList(Resource):
     @api.response(400, 'Invalid input data')
     def post(self):
         """Register a new user"""
-        user_data = api.payload
-
         current_user = get_jwt_identity()
         if not current_user["is_admin"]:
             return {'error': 'Only admins can create users.'}, 403
+
+        user_data = api.payload
 
         # Simulate email uniqueness check
         # (to be replaced by real validation with persistence)
