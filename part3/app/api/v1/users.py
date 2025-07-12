@@ -13,25 +13,31 @@ user_model = api.model('User', {
     'email': fields.String(required=True,
                            description='Email of the user'),
     'password': fields.String(required=True,
-                              description='Password of the user')
+                              description='Password of the user'),
 })
 
 
 @api.route('/')
 class UserList(Resource):
+    @jwt_required
     @api.expect(user_model, validate=True)
     @api.response(201, 'User successfully created')
     @api.response(409, 'Email already registered')
+    @api.response(403, 'Unauthorized action')
     @api.response(400, 'Invalid input data')
     def post(self):
         """Register a new user"""
         user_data = api.payload
 
+        current_user = get_jwt_identity()
+        if not current_user["is_admin"]:
+            return {'error': 'Only admins can create users.'}, 403
+
         # Simulate email uniqueness check
         # (to be replaced by real validation with persistence)
         existing_user = facade.get_user_by_email(user_data['email'])
         if existing_user:
-            return {'error': 'Email already registered'}, 409
+            return {'error': 'Email already registered.'}, 409
 
         try:
             new_user = facade.create_user(user_data)
@@ -59,27 +65,35 @@ class UserResource(Resource):
         (no need to edit as the dict doesn't include password)"""
         user = facade.get_user(user_id)
         if not user:
-            return {'error': 'User not found'}, 404
+            return {'error': 'User not found.'}, 404
         return user.to_dict(), 200
 
     @jwt_required()
     @api.expect(user_model)
     @api.response(200, 'User updated successfully')
     @api.response(404, 'User not found')
+    @api.response(403, 'Unauthorized action')
     @api.response(400, 'Invalid input data')
     def put(self, user_id):
         user_data = api.payload
 
         user = facade.get_user(user_id)
         if not user:
-            return {'error': 'User not found'}, 404
+            return {'error': 'User not found.'}, 404
 
         current_user = get_jwt_identity()
         if not current_user["id"] == user_id:
             return {'error': 'Unauthorized action.'}, 403
-        
-        if "email" in user_data or "password" in user_data:
+
+        if not current_user["is_admin"] and \
+           ("email" in user_data or "password" in user_data):
             return {'error': '"You cannot modify email or password.'}, 400
+
+        email = user_data["email"]
+        if email:
+            existing_user = facade.get_user_by_email(email)
+            if existing_user and existing_user.id != user_id:
+                return {'error': 'Email already in use'}, 400
 
         try:
             facade.update_user(user_id, user_data)

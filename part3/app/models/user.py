@@ -90,15 +90,19 @@ class User(BaseModel):
         return bcrypt.check_password_hash(self.__password, password)
 
     def add_place(self, place):
-        """Add an amenity to the place."""
+        """Add a place."""
         self.places.append(place)
+        
+    def delete_place(self, place):
+        """Delete a place."""
+        self.places.remove(place)
 
     def add_review(self, review):
-        """Add an amenity to the place."""
+        """Add a review to the place."""
         self.reviews.append(review)
 
     def delete_review(self, review):
-        """Add an amenity to the place."""
+        """Delete a review on the place."""
         self.reviews.remove(review)
 
     def to_dict(self):

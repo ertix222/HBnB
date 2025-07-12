@@ -74,6 +74,18 @@ class HBnBFacade:
     def update_place(self, place_id, place_data):
         self.place_repo.update(place_id, place_data)
 
+    def delete_place(self, place_id):
+        place = self.place_repo.get(place_id)
+
+        owner = self.user_repo.get(place.owner.id)
+
+        owner.delete_place(place)
+
+        for i in place.reviews:
+            owner.delete_review(i.id)
+            self.review_repo.delete(i.id)
+        self.place_repo.delete(place_id)
+
     # REVIEWS
     def create_review(self, review_data, user_id):
         user = self.user_repo.get(user_id)
